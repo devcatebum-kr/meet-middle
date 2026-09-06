@@ -1,0 +1,10 @@
+{
+  "name": "meet-middle",
+  "version": "1.1.0",
+  "description": "중간에서 보자 — 모임 출발지들의 공평한 중간 지하철역을 찾아주는 도구 (협업 방 + 대중교통 시간 기반)",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

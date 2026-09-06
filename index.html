@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>중간에서 보자 — 모임 중간지점 찾기</title>
+<meta name="description" content="모임 출발지들을 넣으면 가장 공평한 중간 지하철역을 찾아줘요. 방을 만들면 각자 자기 위치를 넣을 수 있어요.">
+<meta property="og:title" content="중간에서 보자">
+<meta property="og:description" content="다들 출발지를 넣으면, 가장 공평한 중간 지하철역을 찾아줘요.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>중간에서 보자</h1>
+    <div class="sub">다들 출발지를 넣으면, 가장 공평한 중간 지하철역을 찾아줘요.</div>
+  </header>
+
+  <div id="keyWarn" class="warn" hidden>
+    ⚠️ 카카오 지도 키가 설정되지 않았어요. <b>config.js</b>의 KAKAO_JS_KEY를 확인하세요.
+  </div>
+
+  <!-- HOME : 솔로 입력 + 방 만들기 -->
+  <section id="homeView" hidden>
+    <div class="card">
+      <div class="label">출발지 (2명 이상)</div>
+      <div id="soloPeople"></div>
+      <div class="row-actions"><button class="ghost sm" id="soloAdd">+ 사람 추가</button></div>
+    </div>
+    <button class="big" id="soloFind">중간지점 찾기</button>
+
+    <div class="or"><span>또는</span></div>
+
+    <div class="card room-cta">
+      <div class="cta-text">
+        <div class="cta-title">여럿이 각자 넣기</div>
+        <div class="cta-desc">방을 만들어 링크를 공유하면, 친구들이 각자 자기 출발지를 넣어요.</div>
+      </div>
+      <button class="ghost" id="makeRoom">방 만들기</button>
+    </div>
+  </section>
+
+  <!-- ROOM : 공유 링크 + 참여자 라이브 + 내 위치 추가 -->
+  <section id="roomView" hidden>
+    <div class="card">
+      <div class="label">모임 방</div>
+      <div class="share">
+        <input type="text" id="shareLink" readonly>
+        <button class="sm" id="copyLink">링크 복사</button>
+      </div>
+      <div class="hint">이 링크를 단톡방에 공유하세요. 각자 자기 출발지를 넣으면 실시간으로 모여요.</div>
+    </div>
+
+    <div class="card">
+      <div class="label">참여자 <span id="pCount" class="count">0</span></div>
+      <ul class="parts" id="partList"></ul>
+      <div class="myjoin">
+        <div class="person">
+          <input class="name" type="text" id="myName" placeholder="이름">
+          <input type="text" id="myQ" placeholder="내 출발지 (주소·역·건물명)">
+          <button class="ghost sm" id="myoSearch">검색</button>
+        </div>
+        <ul class="results" id="myResults"></ul>
+        <div class="picked" id="myPicked"></div>
+        <button class="sm" id="myAdd" disabled>내 출발지 추가</button>
+      </div>
+    </div>
+
+    <button class="big" id="roomFind" disabled>중간지점 찾기</button>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="resultsView" hidden>
+    <div id="map"></div>
+    <div class="card">
+      <div class="label">추천 만남 장소 <span id="fairBadge" class="badge" hidden></span></div>
+      <ul class="stations" id="stationList"></ul>
+      <div class="copybar">
+        <button id="copyText" class="ghost">📋 카톡용 텍스트</button>
+        <button id="copyResult" class="ghost">🔗 결과 링크</button>
+      </div>
+      <div class="hint" id="copyHint"></div>
+      <button class="ghost sm" id="backHome" style="margin-top:12px">← 다시 하기</button>
+    </div>
+  </section>
+
+  <footer>rep #1 · 만든 사람이 직접 배포한 도구</footer>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

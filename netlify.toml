@@ -1,0 +1,9 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+# Functions declare their own routes via `export const config = { path }`,
+# so no redirect rules are needed for /api/*.
+
+[functions]
+  node_bundler = "esbuild"
