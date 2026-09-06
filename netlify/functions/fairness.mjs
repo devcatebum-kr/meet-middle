@@ -103,4 +103,3 @@ export default async (req) => {
 };
 
 export const config = { path: "/api/fairness" };
-export const config = { path: "/api/fairness" };
