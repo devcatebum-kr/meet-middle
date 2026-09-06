@@ -144,7 +144,14 @@
 
     refreshRoom();
     clearInterval(S.poll);
-    S.poll = setInterval(refreshRoom, 4000);
+    // 탭이 보일 때만 폴링(숨김 시 네트워크·함수호출 0), 다시 보이면 즉시 갱신
+    S.poll = setInterval(() => { if (!document.hidden) refreshRoom(); }, 5000);
+    if (!S._visBound) {
+      S._visBound = true;
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && S.room) refreshRoom();
+      });
+    }
   }
 
   async function addMe() {
