@@ -22,6 +22,10 @@ function estimateMin(from, to) {
   return { min: Math.round((km / 25) * 60 + 6), source: "estimate" };
 }
 
+// ODsay 앱은 URI(도메인) 제한이 걸려 있어, 서버에서 호출할 때
+// 등록 도메인과 일치하는 Referer 헤더를 보내야 인증을 통과한다.
+const ODSAY_REFERER = process.env.ODSAY_REFERER || "https://idyllic-pasca-95ae55.netlify.app";
+
 // ODsay 대중교통 경로: 좌표는 X=경도(lng), Y=위도(lat)
 async function transitMin(key, from, to) {
   const u =
@@ -29,7 +33,7 @@ async function transitMin(key, from, to) {
     `?SX=${from.lng}&SY=${from.lat}&EX=${to.lng}&EY=${to.lat}` +
     `&apiKey=${encodeURIComponent(key)}`;
   try {
-    const r = await fetch(u);
+    const r = await fetch(u, { headers: { Referer: ODSAY_REFERER } });
     const d = await r.json();
     const t = d?.result?.path?.[0]?.info?.totalTime;
     if (typeof t === "number" && t > 0) return { min: t, source: "transit" };

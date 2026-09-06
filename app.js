@@ -237,7 +237,8 @@
       S.map.setBounds(bounds);
       return;
     }
-    const candidates = stations.slice(0, 5).map((s) => ({
+    // ODsay 무료 한도(30/일)를 아끼려고 centroid에서 가장 가까운 3역만 후보로.
+    const candidates = stations.slice(0, 3).map((s) => ({
       name: s.place_name, lat: +s.y, lng: +s.x, address: s.road_address_name || s.address_name || "",
     }));
 
