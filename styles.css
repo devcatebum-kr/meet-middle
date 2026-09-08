@@ -54,6 +54,9 @@ button:disabled{opacity:.5;cursor:not-allowed}
 /* share bar */
 .share{display:flex;gap:8px}
 .share input{background:var(--bg)}
+button.kakao{background:#FEE500;color:#3C1E1E;width:100%;margin-bottom:10px}
+button.kakao:hover{filter:brightness(0.97)}
+.invite{background:var(--accent-soft);color:var(--accent-ink);border:1px solid var(--accent);border-radius:12px;padding:12px 14px;margin-top:16px;font-size:14px;font-weight:600}
 
 /* participants */
 .parts{list-style:none;padding:0;margin:0 0 12px}
