@@ -43,13 +43,15 @@
 
   <!-- ROOM : 공유 링크 + 참여자 라이브 + 내 위치 추가 -->
   <section id="roomView" hidden>
+    <div id="inviteBanner" class="invite" hidden>🎉 초대받았어요! 출발지를 넣으면 다 같이 공평한 중간지점을 찾아줘요.</div>
     <div class="card">
       <div class="label">모임 방</div>
+      <button class="big kakao" id="inviteBtn">💬 카카오톡으로 초대</button>
       <div class="share">
         <input type="text" id="shareLink" readonly>
-        <button class="sm" id="copyLink">링크 복사</button>
+        <button class="sm" id="copyLink">복사</button>
       </div>
-      <div class="hint">이 링크를 단톡방에 공유하세요. 각자 자기 출발지를 넣으면 실시간으로 모여요.</div>
+      <div class="hint">친구들을 초대하면 각자 자기 출발지를 넣고, 실시간으로 모여 공평한 중간지점을 찾아요.</div>
     </div>
 
     <div class="card">
