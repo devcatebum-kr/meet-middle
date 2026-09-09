@@ -46,10 +46,18 @@
 - 기능 ①만남장소 추천 ②결과 공유링크 ③길찾기 딥링크 ④입력 UX ⑤인당 거리/시간 표시 ⑥대중교통 시간 기반 공평 ⑦협업 방 — **구현 완료**.
 - **유통 1차**: 방 뷰에 카톡 초대 버튼 + "초대받았어요" 배너 + `enterRoom(invited)` + `shareInvite()` + `/s` OG 카드. **완료**.
 - **결과 링크 OG 카드**: `#r=` → `/s?r=` 전환, share.mjs가 payload를 디코드해 "N명의 중간지점 · 이름들" 카드 렌더. `/s`는 `noindex`(공유 링크에 이름·출발지가 담기므로). **완료**.
+- **og:image**: `og.png`(1200×630) + index.html·share.mjs 배선, `twitter:card=summary_large_image`. **완료**.
+  - 원본은 `docs/og-source.html`. 수정 후 아래로 다시 굽는다:
+    ```bash
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu \
+      --hide-scrollbars --force-device-scale-factor=1 --screenshot=og.png \
+      --window-size=1200,630 file://$PWD/docs/og-source.html
+    ```
+  - 이미지를 교체하면 index.html·share.mjs의 `?v=1` 을 올려야 카톡 스크래퍼 캐시가 갱신된다.
 - 성능/비용: ODsay Blobs 캐시, 가시성 기반 폴링, 후보 top3 제한. 광고 수익 배선은 **인지만, 테스트 기간이라 보류**.
 
 ## 8. 다음 할 일 (미착수)
-- 유통 다듬기: 초대 카피/OG 문구 개선, 커스텀 `og:image` PNG (index.html·share.mjs 둘 다 아직 이미지 없음 → 카드가 텍스트만).
+- 유통 다듬기: 초대 카피/OG 문구 A/B (지금 문구는 1차안). 결과 카드에 인원수·역 이름을 넣은 **동적 og:image**는 아직 (지금은 전 페이지 공용 1장).
 - 시딩: 오픈채팅/소모임/문토 등 커뮤니티 시딩용 카피(콘텐츠 마케팅 방식은 Jude가 선호 안 함 → 인프로덕트 초대 루프 우선).
 - 경쟁사 스캔: 중간zum 등.
 
@@ -64,6 +72,7 @@
 meet-middle/
 ├─ index.html
 ├─ app.js
+├─ og.png              # 공유 카드 썸네일 1200×630 (docs/og-source.html 에서 구움)
 ├─ styles.css
 ├─ config.js            # KAKAO_JS_KEY (public, 도메인 잠금)
 ├─ netlify.toml
@@ -74,5 +83,6 @@ meet-middle/
 │  ├─ fairness.mjs      # /api/fairness (ODsay + Blobs 캐시 + minimax)
 │  └─ share.mjs         # /s (OG 카드)
 └─ docs/
-   └─ HANDOFF.md        # 이 문서
+   ├─ HANDOFF.md        # 이 문서
+   └─ og-source.html    # og.png 원본 (헤드리스 크롬으로 스크린샷)
 ```

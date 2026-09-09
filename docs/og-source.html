@@ -1,0 +1,56 @@
+<!doctype html><meta charset="utf-8">
+<style>
+  /* 앱(styles.css)의 라이트 토큰 그대로 — 카드가 서비스와 같은 인상을 주도록 */
+  :root{ --bg:#F4F6F5; --surface:#FFF; --ink:#18211E; --muted:#5E6B66;
+         --line:#DDE2DE; --accent:#0F7A6B; --accent-soft:#E1F0EC; --accent-ink:#0B5B4F; }
+  *{box-sizing:border-box;margin:0}
+  html,body{width:1200px;height:630px;overflow:hidden}
+  body{background:var(--bg);color:var(--ink);
+       font-family:"Apple SD Gothic Neo",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .sheet{position:relative;width:1200px;height:630px;padding:76px 72px;display:flex;flex-direction:column;
+         justify-content:space-between;overflow:hidden}
+  /* 우상단 은은한 accent 워시 */
+  .wash{position:absolute;right:-160px;top:-200px;width:760px;height:760px;border-radius:50%;
+        background:radial-gradient(circle at 50% 50%, #E1F0EC 0%, rgba(225,240,236,.55) 45%, rgba(225,240,236,0) 72%)}
+  .row{position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:48px}
+  .brand{display:flex;align-items:center;gap:14px;font-size:30px;font-weight:800;letter-spacing:-.02em}
+  .brand .dot{width:20px;height:20px;border-radius:50%;background:var(--accent)}
+  .badge{font-size:22px;font-weight:700;color:var(--accent-ink);background:var(--accent-soft);
+         border:1px solid #BFDDD5;border-radius:999px;padding:9px 20px;white-space:nowrap}
+  .main{position:relative;display:flex;align-items:center;justify-content:space-between;gap:40px;flex:1;padding:26px 0}
+  h1{font-size:88px;line-height:1.14;font-weight:800;letter-spacing:-.035em}
+  h1 em{font-style:normal;color:var(--accent)}
+  .sub{margin-top:22px;font-size:30px;line-height:1.5;color:var(--muted);font-weight:500}
+  .foot{position:relative;display:flex;align-items:center;gap:14px;font-size:24px;color:var(--muted);font-weight:600}
+  .chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 18px;color:var(--ink);font-weight:700}
+</style>
+<div class="sheet">
+  <div class="wash"></div>
+
+  <div class="row">
+    <div class="brand"><span class="dot"></span>중간에서 보자</div>
+    <div class="badge">대중교통 시간 기준</div>
+  </div>
+
+  <div class="main">
+    <div>
+      <h1>다 같이 공평한<br><em>중간 지하철역</em></h1>
+      <div class="sub">출발지만 넣으면, 가장 오래 걸리는 사람의<br>이동시간이 제일 짧은 역을 찾아줘요.</div>
+    </div>
+
+    <!-- 세 출발지가 한 역으로 모이는 그림 -->
+    <svg width="330" height="330" viewBox="0 0 330 330" fill="none" aria-hidden="true">
+      <circle cx="165" cy="165" r="150" fill="#fff" stroke="#DDE2DE" stroke-width="2"/>
+      <g stroke="#0F7A6B" stroke-width="5" stroke-linecap="round" stroke-dasharray="4 13" opacity=".7">
+        <path d="M62 78 L165 165"/><path d="M282 108 L165 165"/><path d="M120 282 L165 165"/>
+      </g>
+      <g fill="#fff" stroke="#5E6B66" stroke-width="4">
+        <circle cx="62" cy="78" r="15"/><circle cx="282" cy="108" r="15"/><circle cx="120" cy="282" r="15"/>
+      </g>
+      <circle cx="165" cy="165" r="54" fill="#E1F0EC"/>
+      <circle cx="165" cy="165" r="38" fill="#0F7A6B" stroke="#fff" stroke-width="7"/>
+    </svg>
+  </div>
+
+  <div class="foot"><span class="chip">방 만들기 → 링크 공유</span> 친구들이 각자 출발지를 넣어요</div>
+</div>

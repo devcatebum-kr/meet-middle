@@ -71,6 +71,8 @@ export default async (req) => {
   }
 
   const canonical = url.origin + url.pathname + url.search;
+  // 카톡 카드 썸네일. 이미지를 교체하면 ?v= 를 올려야 스크래퍼 캐시가 갱신된다(index.html 과 같이).
+  const image = url.origin + "/og.png?v=1";
   const html =
     `<!doctype html><html lang="ko"><head><meta charset="utf-8">` +
     `<meta name="viewport" content="width=device-width, initial-scale=1">` +
@@ -82,7 +84,12 @@ export default async (req) => {
     `<meta property="og:title" content="${esc(title)}">` +
     `<meta property="og:description" content="${esc(desc)}">` +
     `<meta property="og:url" content="${esc(canonical)}">` +
-    `<meta name="twitter:card" content="summary">` +
+    `<meta property="og:image" content="${esc(image)}">` +
+    `<meta property="og:image:width" content="1200">` +
+    `<meta property="og:image:height" content="630">` +
+    `<meta property="og:image:alt" content="중간에서 보자 — 다 같이 공평한 중간 지하철역">` +
+    `<meta name="twitter:card" content="summary_large_image">` +
+    `<meta name="twitter:image" content="${esc(image)}">` +
     `<meta http-equiv="refresh" content="0;url=${esc(dest)}">` +
     `<script>location.replace(${JSON.stringify(dest)});</script>` +
     `</head><body style="font-family:system-ui;padding:24px">` +
