@@ -152,5 +152,5 @@ meet-middle/
    ├─ HANDOFF.md        # 이 문서
    ├─ PLAN.md           # 제품 기획 2판 (살아있는 방)
    ├─ competitors.md    # 경쟁사 스캔
-   ├─ og-source.html    # og.png 원본 (헤드리스 크롬으로 스크린샷)
+   └─ og-source.html    # og.png 원본 (헤드리스 크롬으로 스크린샷)
 ```
