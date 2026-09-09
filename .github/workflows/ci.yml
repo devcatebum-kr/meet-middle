@@ -1,0 +1,21 @@
+# Netlify 배포는 크레딧이 비싸다(1회 15크레딧, Free 월 20회).
+# 그래서 검증은 여기서 한다 — 공개 저장소라 Actions 는 무료다.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install --no-audit --no-fund
+      - name: 문법 검사 (브라우저 번들 포함)
+        run: node --check app.js && for f in netlify/functions/*.mjs netlify/functions/_shared/*.mjs; do node --check "$f" || exit 1; done
+      - run: npm test
