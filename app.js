@@ -290,13 +290,17 @@
     });
 
     // 후보 지하철역 (centroid 근처, 반경 확장)
+    // 6km 에서 멈추면 지방↔서울처럼 먼 조합에서 centroid 가 지하철 없는 곳에 떨어져 그냥 실패했다.
+    // 카카오 categorySearch 상한인 20km 까지 넓힌다. ODsay 로 보내는 후보는 여전히 top3 라 쿼터와 무관.
     let stations = [];
-    for (let radius = 1500; radius <= 6000 && stations.length < 5; radius += 1500) {
+    for (const radius of [1500, 3000, 6000, 12000, 20000]) {
       const data = await categoryP("SW8", { location: center, radius, sort: kakao.maps.services.SortBy.DISTANCE });
       stations = dedupeStations(data);
+      if (stations.length >= 5) break;
     }
     if (!stations.length) {
-      $("stationList").innerHTML = '<li class="empty">근처에서 지하철역을 못 찾았어요.</li>';
+      $("stationList").innerHTML =
+        '<li class="empty">중간 지점 20km 안에 지하철역이 없어요.<br>출발지가 서로 너무 멀면 기차역·터미널로 만나는 게 나아요.</li>';
       S.map.setBounds(bounds);
       return;
     }
