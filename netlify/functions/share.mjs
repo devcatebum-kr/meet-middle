@@ -3,11 +3,36 @@ import { getStore } from "@netlify/blobs";
 const esc = (s) =>
   String(s || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
+// 결과 payload(base64url)는 앱이 만든 형태만 통과시킨다 — HTML/JS로 새어나갈 문자를 원천 차단.
+const B64 = /^[A-Za-z0-9+/=_-]{4,4000}$/;
+
+// app.js 의 b64e 역연산. 실패하면 null (조작된 링크는 기본 카드로).
+function decodeResult(raw) {
+  if (!raw || !B64.test(raw)) return null;
+  try {
+    const b = raw.replace(/-/g, "+").replace(/_/g, "/");
+    const pad = b + "=".repeat((4 - (b.length % 4)) % 4);
+    const arr = JSON.parse(Buffer.from(pad, "base64").toString("utf8"));
+    return Array.isArray(arr) && arr.length >= 2 ? arr : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function namesLine(arr) {
+  const names = arr.map((x) => String((x && x.n) || "").trim()).filter(Boolean);
+  if (!names.length) return "";
+  return names.length <= 3
+    ? names.join("·")
+    : names.slice(0, 3).join("·") + ` 외 ${names.length - 3}명`;
+}
+
 // 공유 링크(카톡 등)에서 OG 미리보기 카드를 띄우기 위한 서버 렌더 페이지.
 // 스크래퍼는 OG 태그를 읽고, 사람은 실제 앱으로 즉시 리다이렉트된다.
 export default async (req) => {
   const url = new URL(req.url);
   const roomId = url.searchParams.get("room");
+  const result = url.searchParams.get("r");
 
   let title = "중간에서 보자";
   let desc = "다들 출발지를 넣으면, 가장 공평한 중간 지하철역을 찾아줘요.";
@@ -32,6 +57,17 @@ export default async (req) => {
       : n > 0
       ? `${n}명이 모이는 중 · 링크 열고 내 출발지를 추가해요.`
       : "링크를 열고 각자 출발지를 넣으면 공평한 중간 지하철역을 찾아줘요.";
+  } else if (result) {
+    const arr = decodeResult(result);
+    if (arr) {
+      // 앱에는 해시(#r=)로 넘긴다 — 출발지 좌표가 앱 요청에는 다시 실리지 않게.
+      dest = "/#r=" + result;
+      const who = namesLine(arr);
+      title = `중간에서 보자 — ${arr.length}명의 중간지점`;
+      desc =
+        (who ? who + " · " : "") +
+        "대중교통 시간 기준으로 가장 공평한 역과 각자 소요시간을 확인해보세요.";
+    }
   }
 
   const canonical = url.origin + url.pathname + url.search;
@@ -40,6 +76,8 @@ export default async (req) => {
     `<meta name="viewport" content="width=device-width, initial-scale=1">` +
     `<title>${esc(title)}</title>` +
     `<meta name="description" content="${esc(desc)}">` +
+    // 공유 링크에는 참여자 이름·출발지가 담기므로 검색엔진 색인은 막는다(OG 스크래퍼는 그대로 읽음).
+    `<meta name="robots" content="noindex,nofollow">` +
     `<meta property="og:type" content="website">` +
     `<meta property="og:title" content="${esc(title)}">` +
     `<meta property="og:description" content="${esc(desc)}">` +

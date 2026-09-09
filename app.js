@@ -37,6 +37,7 @@
   function route() {
     const params = new URLSearchParams(location.search);
     if (params.get("room")) return enterRoom(params.get("room"), true);
+    if (params.get("r")) return renderShared(params.get("r"));
     const m = location.hash.match(/[#&]r=([^&]+)/);
     if (m) return renderShared(m[1]);
     showHome();
@@ -53,8 +54,13 @@
     clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("on"), 2200);
   }
   const esc = (s) => (s || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const b64e = (obj) => btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
-  const b64d = (str) => JSON.parse(decodeURIComponent(escape(atob(str))));
+  // 결과 payload는 URL 쿼리(/s?r=)에도 실리므로 base64url(+ / = 없는 형태)로 인코딩한다.
+  const b64e = (obj) =>
+    btoa(unescape(encodeURIComponent(JSON.stringify(obj)))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const b64d = (str) => {
+    const b = str.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(decodeURIComponent(escape(atob(b + "=".repeat((4 - (b.length % 4)) % 4)))));
+  };
 
   function categoryP(code, opts) {
     return new Promise((res) => { if (!S.ps) return res([]); S.ps.categorySearch(code, (d, st) => res(st === kakao.maps.services.Status.OK ? d : []), opts); });
@@ -256,7 +262,7 @@
       bounds.extend(pos);
     });
 
-    // 후보 지하철역 (centroid 근벘, 반경 확장)
+    // 후보 지하철역 (centroid 근처, 반경 확장)
     let stations = [];
     for (let radius = 1500; radius <= 6000 && stations.length < 5; radius += 1500) {
       const data = await categoryP("SW8", { location: center, radius, sort: kakao.maps.services.SortBy.DISTANCE });
@@ -355,8 +361,9 @@
       t += `${n + 1}. ${st.name}${times ? ` (${times})` : ""}\n`;
     });
     t += "\n(출발지: " + people.map((p) => (p.name ? p.name + " " : "") + p.label).join(", ") + ")";
+    // /s 를 거쳐야 카톡 등에서 OG 미리보기 카드가 뜬다(해시는 서버로 안 감). /s 는 앱의 #r= 로 되돌린다.
     const shareUrl =
-      location.origin + "/#r=" +
+      location.origin + "/s?r=" +
       b64e(people.map((p) => ({ n: p.name || "", la: +(+p.lat).toFixed(6), ln: +(+p.lng).toFixed(6), l: p.label || "" })));
     t += "\n" + shareUrl;
 

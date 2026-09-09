@@ -1,6 +1,6 @@
 # 중간에서 보자 — 프로젝트 핸드오프 (Claude Code 이관용)
 
-> 마지막 갱신: 2026-09-08 · 이 문서는 새 Claude Code 세션이 맥락을 빠르게 잡도록 정리한 인수인계 노트다. 작업 시작 전에 이 문서를 먼저 읽을 것.
+> 마지막 갱신: 2026-09-09 · 이 문서는 새 Claude Code 세션이 맥락을 빠르게 잡도록 정리한 인수인계 노트다. 작업 시작 전에 이 문서를 먼저 읽을 것.
 
 ## 1. 이게 뭔가
 - **B2C 웹 도구**: 모임 참여자들의 출발지를 넣으면 **가장 공평한 중간 지하철역**을 추천한다.
@@ -23,14 +23,15 @@
   - `netlify/functions/room.mjs` → `/api/room` : 방 생성(POST)/조회(GET). 참여자 prefix `${roomId}:p:`.
   - `netlify/functions/participant.mjs` → `/api/participant` : 참여자 upsert(POST)/삭제(DELETE). 키 `${roomId}:p:${id}`.
   - `netlify/functions/fairness.mjs` → `/api/fairness` : **ODsay 대중교통 시간** 계산. Blobs 캐시(좌표 소수 3자리 반올림 ≈110m, 60일 TTL) + **minimax 공평 정렬** + 실패 시 직선거리 폴백.
-  - `netlify/functions/share.mjs` → `/s` : 카톡 공유용 **OG 카드 서버 렌더** 후 앱(`?room=`)으로 리다이렉트(해시 `#r=`는 서버로 안 가므로 필요).
+  - `netlify/functions/share.mjs` → `/s` : 카톡 공유용 **OG 카드 서버 렌더** 후 앱으로 리다이렉트. 두 종류를 받는다 — `?room=` (방 초대, 참여자 수를 카드에 표시) / `?r=` (결과 링크, payload를 디코드해 인원·이름을 카드에 표시 후 앱의 `#r=`로 되돌림). 해시는 서버로 안 가므로 공유 링크는 반드시 `/s`를 거쳐야 카드가 뜬다.
 
 ## 4. app.js 핵심 흐름
 - `boot()` : Kakao 지도 SDK + Kakao 공유 SDK 로드, `Kakao.init(key)`, `route()`.
 - `route()` : `?room=` → `enterRoom(id, invited=true)` / `#r=` → `renderShared()` / else → `showHome()`.
 - `enterRoom(roomId, invited)` : 방 뷰. `invited`면 초대 배너 표시. 공유링크 `origin + "/s?room=" + id`. 카톡 초대 버튼(`shareInvite`) 연결. **가시성 기반 폴링**(`document.hidden`이면 skip, 5초, visibilitychange 시 즉시 갱신).
 - `shareInvite(link)` : Kakao.Share 원탭 → `navigator.share` → 클립보드 복사 순 폴백.
-- `compute(people)` : centroid 근처 지하철역 후보 → **ODsay 쿼터 절약 위해 top3만** `/api/fairness`에 보냄 → 결과 렌더 + 역 근처 카페/음식 → 카톡 텍스트/결과링크(`#r=`) 생성.
+- `compute(people)` : centroid 근처 지하철역 후보 → **ODsay 쿼터 절약 위해 top3만** `/api/fairness`에 보냄 → 결과 렌더 + 역 근처 카페/음식 → 카톡 텍스트/결과링크(`/s?r=`) 생성.
+- payload 인코딩은 **base64url**(`b64e`/`b64d`) — 쿼리에 실려도 안전. 구버전 표준 base64 `#r=` 링크도 그대로 디코드된다.
 - 공평 기준: **minimax**(가장 오래 걸리는 사람 최소화, 동률이면 총합).
 
 ## 5. 환경변수 (Netlify 대시보드에 설정됨)
@@ -44,10 +45,11 @@
 ## 7. 현재 상태 (완료)
 - 기능 ①만남장소 추천 ②결과 공유링크 ③길찾기 딥링크 ④입력 UX ⑤인당 거리/시간 표시 ⑥대중교통 시간 기반 공평 ⑦협업 방 — **구현 완료**.
 - **유통 1차**: 방 뷰에 카톡 초대 버튼 + "초대받았어요" 배너 + `enterRoom(invited)` + `shareInvite()` + `/s` OG 카드. **완료**.
+- **결과 링크 OG 카드**: `#r=` → `/s?r=` 전환, share.mjs가 payload를 디코드해 "N명의 중간지점 · 이름들" 카드 렌더. `/s`는 `noindex`(공유 링크에 이름·출발지가 담기므로). **완료**.
 - 성능/비용: ODsay Blobs 캐시, 가시성 기반 폴링, 후보 top3 제한. 광고 수익 배선은 **인지만, 테스트 기간이라 보류**.
 
 ## 8. 다음 할 일 (미착수)
-- 유통 다듬기: 초대 카피/OG 문구 개선, 결과링크(`#r=`)용 OG 카드 + 커스텀 `og:image` PNG.
+- 유통 다듬기: 초대 카피/OG 문구 개선, 커스텀 `og:image` PNG (index.html·share.mjs 둘 다 아직 이미지 없음 → 카드가 텍스트만).
 - 시딩: 오픈채팅/소모임/문토 등 커뮤니티 시딩용 카피(콘텐츠 마케팅 방식은 Jude가 선호 안 함 → 인프로덕트 초대 루프 우선).
 - 경쟁사 스캔: 중간zum 등.
 
