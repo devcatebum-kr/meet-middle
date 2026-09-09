@@ -21,9 +21,21 @@
     route();
   }
 
+  // 초대 메시지 본문. 카톡 OG 카드는 링크를 붙여넣는 순간 한 번 긁혀서 굳는데,
+  // 그 시점의 방은 거의 항상 0명이라 카드에 "N명이 모이는 중"을 기대할 수 없다.
+  // 대신 우리가 직접 보내는 메시지 '본문'에 현황을 담는다 — 본문은 매번 새로 만들어져 캐시를 안 탄다.
+  function inviteText() {
+    const ppl = (S.room && S.room.participants) || [];
+    if (!ppl.length) return "어디서 볼지 정하자! 링크 열고 출발지만 넣으면, 다 같이 제일 공평한 지하철역을 찾아줘 🙌";
+    const names = ppl.map((p) => (p.name || "").trim()).filter(Boolean);
+    // 전원이 이름을 넣었고 셋 이하일 때만 이름을 부른다. 그 밖엔 숫자가 덜 어색하다.
+    const who = names.length === ppl.length && ppl.length <= 3 ? names.join("·") : `${ppl.length}명`;
+    return `${who} 출발지 넣었어! 너도 넣어줘 — 다 모이면 제일 공평한 지하철역 찾아줄게 🙌`;
+  }
+
   // 초대 공유: 카카오 SDK 원탭 → 기기 공유시트 → 링크 복사 순으로 폴백
   function shareInvite(link) {
-    const text = "어디서 볼지 정하자! 링크 열고 출발지만 넣으면, 다 같이 제일 공평한 지하철역을 찾아줘 🙌";
+    const text = inviteText();
     try {
       if (window.Kakao && Kakao.isInitialized && Kakao.isInitialized() && Kakao.Share) {
         Kakao.Share.sendDefault({ objectType: "text", text, link: { mobileWebUrl: link, webUrl: link } });
@@ -31,7 +43,11 @@
       }
     } catch (e) { /* fall through */ }
     if (navigator.share) { navigator.share({ title: "중간에서 보자", text, url: link }).catch(() => {}); return; }
-    navigator.clipboard.writeText(link).then(() => toast("초대 링크를 복사했어요! 카톡에 붙여넣기 하세요."), () => toast(link));
+    // 폴백도 본문을 함께 복사한다 — 붙여넣으면 카드와 별개로 현황이 보이도록.
+    navigator.clipboard.writeText(text + "\n" + link).then(
+      () => toast("초대 메시지를 복사했어요! 카톡에 붙여넣기 하세요."),
+      () => toast(link)
+    );
   }
 
   function route() {
@@ -240,6 +256,17 @@
       list.appendChild(li);
     });
     $("roomFind").disabled = ppl.filter((p) => p.lat != null).length < 2;
+
+    // 이 루프의 유일한 확산 경로는 "이미 들어온 사람이 다시 보내는 것"이다.
+    // 인원이 있으면 버튼과 힌트를 재공유 쪽으로 바꾼다.
+    const inviteBtn = $("inviteBtn"), hint = $("roomHint");
+    if (ppl.length) {
+      inviteBtn.textContent = "💬 아직 안 넣은 친구 부르기";
+      hint.textContent = `지금 ${ppl.length}명 · 아직 안 넣은 친구가 있으면 다시 보내주세요. 2명부터 찾을 수 있어요.`;
+    } else {
+      inviteBtn.textContent = "💬 카카오톡으로 초대";
+      hint.textContent = "친구가 출발지를 넣으면 아래 목록에 바로 나타나요. 2명부터 찾을 수 있어요.";
+    }
   }
 
   /* ---------- COMPUTE + RESULTS ---------- */
