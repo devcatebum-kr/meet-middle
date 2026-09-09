@@ -69,6 +69,15 @@
 - 동적 og:image: 결과 카드 그림에 인원수·역 이름을 그려 넣기. 서버 PNG 렌더는 의존성(satori/resvg)이 붙어 **바닐라 유지 원칙과 트레이드오프** — 지금은 전 페이지 공용 1장.
 - 시딩: 오픈채팅/소모임/문토 등 커뮤니티 시딩용 카피(콘텐츠 마케팅 방식은 Jude가 선호 안 함 → 인프로덕트 초대 루프 우선).
 
+## 8-1. 배포 일시정지 (2026-09-09 기준)
+
+- Netlify 팀(`dev-cate-bum's team`)이 **operational credits** 로 전환되어 **production deploy 가 일시정지**됐다. 배포된 사이트는 계속 살아 있지만 새 배포가 안 올라간다.
+- 대시보드 상단 배너: *"Your published sites are still live, but production deploys and Agent Runners are paused."*
+- 라이브는 `c29f278`(홈 방 중심 재구성)에 멈춰 있고, 그 뒤 커밋 3개(`07ce510` 퍼널 계측 / `ac2cb0b` stats 잠금 / `7d776e7` 공용 모듈 이동)가 **대기 중**. 크레딧이 복구되면 한 번에 올라간다.
+- 해결: 팀 업그레이드 또는 다음 결제 주기까지 대기. 리셋 시점은 **Usage & billing** 에서 확인.
+- **진단 팁**: 배포 안 됨을 코드 문제로 오해하기 쉽다. `/api/stats` 가 `text/html`(Netlify 기본 404 페이지)로 오면 함수가 아직 배포 안 된 것이고, `text/plain`이면 함수가 떠서 토큰 없이 거부한 것이다.
+- 크레딧 복구 후 할 일: ① Netlify 환경변수에 `STATS_TOKEN` 추가 ② `Clear cache and deploy site` 로 재배포 ③ `curl "…/api/stats?t=<토큰>&format=text"` 로 퍼널 확인 ④ `/s?room=` 이 `no-store` 로 바뀌었는지 확인.
+
 ## 9. 개발 워크플로 (중요)
 - **이 repo 작업은 Claude Code(claude.ai/code 또는 CLI)에서 repo 바운드로** 한다 → `git commit`/`push` 네이티브로 몇 초.
 - 커밋은 작은 단위로. `main` push → Netlify 자동배포.
