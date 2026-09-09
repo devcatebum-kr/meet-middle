@@ -47,7 +47,6 @@
 - **유통 1차**: 방 뷰에 카톡 초대 버튼 + "초대받았어요" 배너 + `enterRoom(invited)` + `shareInvite()` + `/s` OG 카드. **완료**.
 - **결과 링크 OG 카드**: `#r=` → `/s?r=` 전환, share.mjs가 payload를 디코드해 "N명의 중간지점 · 이름들" 카드 렌더. `/s`는 `noindex`(공유 링크에 이름·출발지가 담기므로). **완료**.
 - **og:image**: `og.png`(1200×630) + index.html·share.mjs 배선, `twitter:card=summary_large_image`. **완료**.
-- **초대·OG 카피 1차**: 접점마다 "할 일 하나"만 남기는 방향으로 정리(카톡 메시지 / 초대 배너 / 방 힌트 / 홈 CTA / OG 문구). 방 카드 제목은 인원이 있으면 `N명이 모이는 중` — 사회적 증거가 참여 이유가 되므로. 푸터의 개인 메모(`rep #1 …`)는 데이터 출처 표기로 교체. **완료**.
   - 원본은 `docs/og-source.html`. 수정 후 아래로 다시 굽는다:
     ```bash
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu \
@@ -55,6 +54,7 @@
       --window-size=1200,630 file://$PWD/docs/og-source.html
     ```
   - 이미지를 교체하면 index.html·share.mjs의 `?v=1` 을 올려야 카톡 스크래퍼 캐시가 갱신된다.
+- **초대·OG 카피 1차**: 접점마다 "할 일 하나"만 남기는 방향으로 정리(카톡 메시지 / 초대 배너 / 방 힌트 / 홈 CTA / OG 문구). 방 카드 제목은 인원이 있으면 `N명이 모이는 중` — 사회적 증거가 참여 이유가 되므로. 푸터의 개인 메모(`rep #1 …`)는 데이터 출처 표기로 교체. **완료**.
 - 성능/비용: ODsay Blobs 캐시, 가시성 기반 폴링, 후보 top3 제한. 광고 수익 배선은 **인지만, 테스트 기간이라 보류**.
 
 ## 8. 다음 할 일 (미착수)
