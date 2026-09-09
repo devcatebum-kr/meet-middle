@@ -19,7 +19,7 @@ v1.1부터 좌표 평균이 아니라 **대중교통 소요시간**으로 "가�
   - `POST/DELETE /api/participant` — 참가자 추가/삭제
   - `POST /api/fairness` — ODsay 대중교통 시간 계산 (키는 서버에서만)
   - `GET /s` — 공유 링크용 OG 카드 서버 렌더 (`?room=` 방 초대 / `?r=` 결과) 후 앱으로 리다이렉트
-  - `GET /api/stats` — 퍼널 조회 (`?format=text`). 카운터는 위 함수들 안에서 올라가므로 추가 호출이 없다
+  - `GET /api/stats` — 퍼널 조회 (`?format=text`). **운영자 전용** — `STATS_TOKEN` 필요. 카운터는 위 함수들 안에서 올라가므로 추가 호출이 없다
 - 저장: Netlify Blobs (`rooms` 스토어, 참가자별 키로 분리 저장 → 동시 입력 안전)
 
 ## 환경 변수 (Netlify site settings)
@@ -27,7 +27,7 @@ v1.1부터 좌표 평균이 아니라 **대중교통 소요시간**으로 "가�
 | 이름 | 설명 |
 |---|---|
 | `ODSAY_API_KEY` | ODsay 대중교통 길찾기 API 키. 없으면 직선거리 기반 추정치로 자동 폴백. |
-| `STATS_TOKEN` | (선택) 설정하면 `/api/stats?t=<토큰>` 으로만 퍼널을 볼 수 있다. 미설정 시 공개. |
+| `STATS_TOKEN` | 퍼널 조회용 비밀 토큰. **설정하지 않으면 `/api/stats` 는 404 로 잠긴다.** 운영자만 `/api/stats?t=<토큰>` 으로 조회. |
 
 ## 로컬 개발
 

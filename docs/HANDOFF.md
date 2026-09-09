@@ -37,6 +37,7 @@
 ## 5. 환경변수 (Netlify 대시보드에 설정됨)
 - `ODSAY_API_KEY` — ODsay 대중교통 API 키.
 - `ODSAY_REFERER` — `https://idyllic-pasca-95ae55.netlify.app` (ODsay가 도메인 제한 → 서버 호출 시 이 Referer 헤더 필요).
+- `STATS_TOKEN` — 퍼널 조회 토큰. **설정 전까지 `/api/stats` 는 404.** 아무 긴 랜덤 문자열이면 된다.
 
 ## 6. 외부 API 주의사항
 - **ODsay**: 무료 Basic = **30콜/일 하드캡**. 그래서 (a) Blobs 캐시, (b) 후보 역 top3 제한을 반드시 유지. 좌표는 `X=경도(lng), Y=위도(lat)` 순서.
@@ -55,7 +56,7 @@
     ```
   - 이미지를 교체하면 index.html·share.mjs의 `?v=1` 을 올려야 카톡 스크래퍼 캐시가 갱신된다.
 - **경쟁사 스캔**: 7곳 직접 확인 → `docs/competitors.md`. 요지 — **링크로 각자 입력하는 협업 방을 가진 곳이 0곳**, minimax를 말하는 곳도 0곳, 카테고리 자체가 작음(최대 1만+ 다운). 가장 가까운 건 쌤밋(대중교통 기준+카톡 공유, 방 없음). **완료**.
-- **퍼널 계측**: `netlify/lib/stats.mjs` — 기존 핸들러 안에서 하루치 블롭 하나를 조건부 쓰기(etag)로 증가시킨다. **함수 호출이 늘지 않는다.** 조회는 `GET /api/stats`(`?format=text`, `?days=N`). `STATS_TOKEN` 환경변수를 설정하면 `?t=` 없이는 못 본다(미설정 시 공개).
+- **퍼널 계측**: `netlify/lib/stats.mjs` — 기존 핸들러 안에서 하루치 블롭 하나를 조건부 쓰기(etag)로 증가시킨다. **함수 호출이 늘지 않는다.** 조회는 `GET /api/stats`(`?format=text`, `?days=N`) — **운영자 전용, fail-closed**. Netlify 대시보드에 `STATS_TOKEN` 을 넣고 `?t=<토큰>` 으로만 열린다. **토큰을 설정하기 전까지는 404** (저장소가 public 이라 엔드포인트 주소가 이미 공개돼 있기 때문).
   - 이벤트: `room_created` / `invite_scraped`(카톡이 카드를 만듦 = 초대가 전송됨) / `invite_viewed`(사람이 열람) / `participant_joined` · `participant_updated` · `participant_removed` / `result_viewed` · `result_scraped` / `fairness_run` / `odsay_call` · `odsay_ok` · `odsay_cache_hit`.
   - **봇 판별 주의**: 카톡 인앱 브라우저(사람)의 UA 에도 `KAKAOTALK` 이 들어간다. 스크래퍼는 `kakaotalk-scrap` 으로만 구분해야 하며, 그냥 `kakaotalk` 을 매칭하면 실제 사용자가 전부 봇으로 잡혀 퍼널이 0이 된다.
   - `/s?room=` 은 `no-store` 로 바꿨다 — 참여자 수가 실시간으로 바뀌는 카드라 캐시가 원래 틀렸고, 캐시되면 열람 집계도 샌다. `/s?r=` 은 내용이 고정이라 5분 캐시 유지.

@@ -2,7 +2,10 @@ import { getStore } from "@netlify/blobs";
 import { kstDay } from "../lib/stats.mjs";
 
 // 퍼널 조회. 사람이 볼 때만 호출되므로 사용자 트래픽에는 영향이 없다.
-// STATS_TOKEN 환경변수를 설정하면 ?t=<토큰> 없이는 못 본다. 없으면 공개.
+//
+// 운영자 전용이다. STATS_TOKEN 환경변수(Netlify 대시보드)를 설정하고
+// /api/stats?t=<토큰> 으로만 본다. 토큰이 없으면 아예 열리지 않는다(fail-closed) —
+// 저장소가 public 이라 이 엔드포인트 주소는 이미 공개돼 있기 때문.
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data, null, 2), {
@@ -28,7 +31,13 @@ export default async (req) => {
 
   const need = process.env.STATS_TOKEN;
   const url = new URL(req.url);
-  if (need && url.searchParams.get("t") !== need) return json({ error: "unauthorized" }, 401);
+  // 토큰 미설정 = 잠김. 401 대신 404 로 존재 자체를 알리지 않는다.
+  if (!need || url.searchParams.get("t") !== need) {
+    return new Response("Not Found", {
+      status: 404,
+      headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
+    });
+  }
 
   const days = Math.min(Math.max(parseInt(url.searchParams.get("days") || "14", 10) || 14, 1), 90);
 
