@@ -7,6 +7,10 @@ const esc = (s) =>
 // 결과 payload(base64url)는 앱이 만든 형태만 통과시킨다 — HTML/JS로 새어나갈 문자를 원천 차단.
 const B64 = /^[A-Za-z0-9+/=_-]{4,4000}$/;
 
+// 쿼리 파싱은 "+" 를 공백으로 바꾼다. 우리가 만드는 링크는 base64url 이라 "+" 가
+// 없지만, 구버전 표준 base64(#r=) 링크를 손으로 옮겨온 경우를 위해 되돌린다.
+const normalizePayload = (raw) => String(raw || "").replace(/ /g, "+");
+
 // app.js 의 b64e 역연산. 실패하면 null (조작된 링크는 기본 카드로).
 function decodeResult(raw) {
   if (!raw || !B64.test(raw)) return null;
@@ -60,10 +64,11 @@ export default async (req) => {
         ? `열어서 내 출발지만 추가하면 끝 · 다 모이면 대중교통 시간 기준으로 가장 공평한 역을 찾아드려요.`
         : "링크를 열고 내 출발지만 넣으면 끝 — 가장 오래 걸리는 사람 기준으로 공평한 역을 찾아드려요.";
   } else if (result) {
-    const arr = decodeResult(result);
+    const payload = normalizePayload(result);
+    const arr = decodeResult(payload);
     if (arr) {
       // 앱에는 해시(#r=)로 넘긴다 — 출발지 좌표가 앱 요청에는 다시 실리지 않게.
-      dest = "/#r=" + result;
+      dest = "/#r=" + payload;
       const who = namesLine(arr);
       title = `중간에서 보자 — ${arr.length}명이 만날 중간지점`;
       desc =

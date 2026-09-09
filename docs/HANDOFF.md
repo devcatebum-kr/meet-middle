@@ -103,14 +103,23 @@ Total                300.3 / 300      (Free plan, 청구주기 9/6~10/5)
 
 ## 9. 개발 워크플로 (중요)
 - **이 repo 작업은 Claude Code(claude.ai/code 또는 CLI)에서 repo 바운드로** 한다 → `git commit`/`push` 네이티브로 몇 초.
-- **커밋은 작게, push 는 묶어서.** `main` push 1회 = 프로덕션 배포 1회 = **15크레딧**. Free plan 은 월 300크레딧이므로 **월 20회 배포가 상한**이다(§8-1 실측). 커밋마다 push 하면 하루에 다 태운다.
-- 검증은 **PR Deploy preview** 로 한다 — 플랜에 "Unlimited deploy previews" 가 포함돼 프로덕션 크레딧을 쓰지 않는다. preview 에서 확인한 뒤 `main` 에 한 번에 올린다.
+- **돈이 나가는 건 GitHub 가 아니라 `main` 머지다.** `git commit`/`git push` 는 공짜. `main` 에 올라간 것이 곧 프로덕션 배포 1회 = **15크레딧**이고, Free plan 월 300크레딧이므로 **월 20회가 상한**이다(§8-1 실측).
+- **작업은 브랜치에서, push 는 마음껏.** 브랜치 push 는 배포를 만들지 않는다. `main` 머지는 "이제 배포한다"는 뜻이므로 의미 있는 묶음 단위로만 한다.
+- **검증 3단계** (배포를 아끼려고 아래로 갈수록 아껴 쓴다):
+  1. `npm test` — 로컬. 순수 로직(봇 UA 판별, KST 일자, `/s` OG 카드 렌더·payload 검증)은 여기서 다 잡힌다.
+  2. **GitHub Actions** (`.github/workflows/ci.yml`) — push·PR 마다 문법 검사 + 테스트. 공개 저장소라 무료.
+  3. **PR Deploy preview** — 플랜에 "Unlimited deploy previews" 포함이라 프로덕션 크레딧을 안 쓴다. 카카오 SDK·Blobs 처럼 실제 환경이 필요한 것만 여기서 본다.
+- 테스트는 `test/*.test.mjs`, 러너는 Node 내장(`node --test`, 의존성 없음). **Node 24 에서는 `node --test test/` 가 디렉터리를 모듈로 해석해 실패하므로 인자 없이 자동 탐색을 쓴다.**
 - 바닐라 JS 유지(불필요한 프레임워크 도입 금지). ODsay 쿼터 절약 로직(캐시·top3) 건드리지 말 것.
 - 참고: Cowork 세션에서는 이 git 루프가 막혀 있어(세션이 컴퓨터 바운드, git 기능 off) 브라우저 우회를 해야 했음 — 그래서 Claude Code로 이관.
 
 ## 10. 파일 트리
 ```
 meet-middle/
+├─ .github/workflows/ci.yml   # 문법 검사 + 테스트 (공개 저장소라 무료)
+├─ test/                      # node --test 용. 배포 없이 검증하는 안전망
+│  ├─ stats.test.mjs          #   봇 UA 판별(카톡 인앱=사람) · KST 일자 경계
+│  └─ share.test.mjs          #   /s OG 카드 · payload 주입 방어 · 구버전 링크 호환
 ├─ index.html
 ├─ app.js
 ├─ og.png              # 공유 카드 썸네일 1200×630 (docs/og-source.html 에서 구움)
