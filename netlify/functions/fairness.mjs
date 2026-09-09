@@ -1,4 +1,5 @@
 import { getStore } from "@netlify/blobs";
+import { track } from "../lib/stats.mjs";
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -30,13 +31,14 @@ const round3 = (n) => Math.round(n * 1000) / 1000;
 const cacheKey = (from, to) =>
   `${round3(from.lat)},${round3(from.lng)}_${round3(to.lat)},${round3(to.lng)}`;
 
-async function transitMin(key, from, to, cache) {
+async function transitMin(key, from, to, cache, tally) {
   const ck = cacheKey(from, to);
 
   if (cache) {
     try {
       const hit = await cache.get(ck, { type: "json" });
       if (hit && typeof hit.min === "number" && Date.now() - hit.ts < CACHE_TTL_MS) {
+        tally.cache += 1;
         return { min: hit.min, source: "transit", cached: true };
       }
     } catch (_) {}
@@ -47,10 +49,12 @@ async function transitMin(key, from, to, cache) {
     `?SX=${from.lng}&SY=${from.lat}&EX=${to.lng}&EY=${to.lat}` +
     `&apiKey=${encodeURIComponent(key)}`;
   try {
+    tally.call += 1; // 실제로 나간 ODsay 호출 — 무료 30콜/일 대비 사용량을 보려고
     const r = await fetch(u, { headers: { Referer: ODSAY_REFERER } });
     const d = await r.json();
     const t = d?.result?.path?.[0]?.info?.totalTime;
     if (typeof t === "number" && t > 0) {
+      tally.ok += 1;
       if (cache) {
         try {
           await cache.setJSON(ck, { min: t, ts: Date.now() });
@@ -78,11 +82,13 @@ export default async (req) => {
     cache = getStore("odsay-cache");
   } catch (_) {}
 
+  const tally = { call: 0, ok: 0, cache: 0 };
+
   const results = [];
   for (const c of candidates) {
     const times = await Promise.all(
       people.map((p) =>
-        key ? transitMin(key, p, c, cache) : Promise.resolve(estimateMin(p, c))
+        key ? transitMin(key, p, c, cache, tally) : Promise.resolve(estimateMin(p, c))
       )
     );
     const mins = times.map((t) => t.min);
@@ -98,6 +104,13 @@ export default async (req) => {
   }
 
   results.sort((a, b) => a.maxMin - b.maxMin || a.sumMin - b.sumMin);
+
+  await track({
+    fairness_run: 1,
+    odsay_call: tally.call,
+    odsay_ok: tally.ok,
+    odsay_cache_hit: tally.cache,
+  });
 
   return json({ candidates: results, usedTransit: !!key });
 };

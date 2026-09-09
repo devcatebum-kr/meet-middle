@@ -1,4 +1,5 @@
 import { getStore } from "@netlify/blobs";
+import { track } from "../lib/stats.mjs";
 
 const store = () => getStore("rooms");
 const json = (data, status = 200) =>
@@ -26,6 +27,7 @@ export default async (req) => {
       createdAt: Date.now(),
       title: (body.title || "").slice(0, 40),
     });
+    await track({ room_created: 1 });
     return json({ roomId });
   }
 

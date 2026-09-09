@@ -55,12 +55,16 @@
     ```
   - 이미지를 교체하면 index.html·share.mjs의 `?v=1` 을 올려야 카톡 스크래퍼 캐시가 갱신된다.
 - **경쟁사 스캔**: 7곳 직접 확인 → `docs/competitors.md`. 요지 — **링크로 각자 입력하는 협업 방을 가진 곳이 0곳**, minimax를 말하는 곳도 0곳, 카테고리 자체가 작음(최대 1만+ 다운). 가장 가까운 건 쌤밋(대중교통 기준+카톡 공유, 방 없음). **완료**.
+- **퍼널 계측**: `netlify/lib/stats.mjs` — 기존 핸들러 안에서 하루치 블롭 하나를 조건부 쓰기(etag)로 증가시킨다. **함수 호출이 늘지 않는다.** 조회는 `GET /api/stats`(`?format=text`, `?days=N`). `STATS_TOKEN` 환경변수를 설정하면 `?t=` 없이는 못 본다(미설정 시 공개).
+  - 이벤트: `room_created` / `invite_scraped`(카톡이 카드를 만듦 = 초대가 전송됨) / `invite_viewed`(사람이 열람) / `participant_joined` · `participant_updated` · `participant_removed` / `result_viewed` · `result_scraped` / `fairness_run` / `odsay_call` · `odsay_ok` · `odsay_cache_hit`.
+  - **봇 판별 주의**: 카톡 인앱 브라우저(사람)의 UA 에도 `KAKAOTALK` 이 들어간다. 스크래퍼는 `kakaotalk-scrap` 으로만 구분해야 하며, 그냥 `kakaotalk` 을 매칭하면 실제 사용자가 전부 봇으로 잡혀 퍼널이 0이 된다.
+  - `/s?room=` 은 `no-store` 로 바꿨다 — 참여자 수가 실시간으로 바뀌는 카드라 캐시가 원래 틀렸고, 캐시되면 열람 집계도 샌다. `/s?r=` 은 내용이 고정이라 5분 캐시 유지.
+  - 하루 경계는 KST. ODsay 30콜/일 잔량도 `/api/stats` 의 `odsay.today_calls` 로 본다.
 - **초대·OG 카피 1차**: 접점마다 "할 일 하나"만 남기는 방향으로 정리(카톡 메시지 / 초대 배너 / 방 힌트 / 홈 CTA / OG 문구). 방 카드 제목은 인원이 있으면 `N명이 모이는 중` — 사회적 증거가 참여 이유가 되므로. 푸터의 개인 메모(`rep #1 …`)는 데이터 출처 표기로 교체. **완료**.
 - 성능/비용: ODsay Blobs 캐시, 가시성 기반 폴링, 후보 top3 제한. 광고 수익 배선은 **인지만, 테스트 기간이라 보류**.
 
 ## 8. 다음 할 일 (미착수)
 - **포지셔닝 반영**(스캔에서 나온 것, `docs/competitors.md`): ①히어로를 솔로가 아니라 **방 중심**으로 — "링크 하나 보내면 각자 자기 위치만" 이 문장은 우리만 쓸 수 있는데 지금 홈 CTA에만 있다. ②**minimax를 카피로** — 결과의 `최대 N분` 배지를 앞세우기. 아무도 안 쓰는 말이라 그 자체가 포지션.
-- 카피 A/B: 지금 문구는 1차안이고 측정은 안 하고 있음. 어떤 문구가 초대 클릭을 만드는지 보려면 최소한의 계측(방 생성 → 초대 열람 → 참여자 추가 퍼널)이 먼저 필요.
 - 동적 og:image: 결과 카드 그림에 인원수·역 이름을 그려 넣기. 서버 PNG 렌더는 의존성(satori/resvg)이 붙어 **바닐라 유지 원칙과 트레이드오프** — 지금은 전 페이지 공용 1장.
 - 시딩: 오픈채팅/소모임/문토 등 커뮤니티 시딩용 카피(콘텐츠 마케팅 방식은 Jude가 선호 안 함 → 인프로덕트 초대 루프 우선).
 
@@ -80,11 +84,14 @@ meet-middle/
 ├─ config.js            # KAKAO_JS_KEY (public, 도메인 잠금)
 ├─ netlify.toml
 ├─ package.json         # @netlify/blobs, type: module
-├─ netlify/functions/
-│  ├─ room.mjs          # /api/room
-│  ├─ participant.mjs   # /api/participant
-│  ├─ fairness.mjs      # /api/fairness (ODsay + Blobs 캐시 + minimax)
-│  └─ share.mjs         # /s (OG 카드)
+├─ netlify/
+│  ├─ lib/stats.mjs     # 퍼널 카운터(공용) — 봇 판별 + KST 일자 키
+│  └─ functions/
+│     ├─ room.mjs          # /api/room
+│     ├─ participant.mjs   # /api/participant
+│     ├─ fairness.mjs      # /api/fairness (ODsay + Blobs 캐시 + minimax)
+│     ├─ share.mjs         # /s (OG 카드)
+│     └─ stats.mjs         # /api/stats (퍼널 조회)
 └─ docs/
    ├─ HANDOFF.md        # 이 문서
    ├─ og-source.html    # og.png 원본 (헤드리스 크롬으로 스크린샷)

@@ -1,4 +1,5 @@
 import { getStore } from "@netlify/blobs";
+import { track } from "../lib/stats.mjs";
 
 const store = () => getStore("rooms");
 const json = (data, status = 200) =>
@@ -37,6 +38,8 @@ export default async (req) => {
       addedAt: Date.now(),
     };
     await s.setJSON(`${roomId}:p:${id}`, p);
+    // participantId 없이 들어오면 이 방의 첫 참여 — 퍼널에서 가장 중요한 지점.
+    await track(body.participantId ? { participant_updated: 1 } : { participant_joined: 1 });
     return json({ ok: true, participant: p });
   }
 
@@ -45,6 +48,7 @@ export default async (req) => {
     const id = body.participantId;
     if (!id) return json({ error: "missing participantId" }, 400);
     await s.delete(`${roomId}:p:${id}`);
+    await track({ participant_removed: 1 });
     return json({ ok: true });
   }
 

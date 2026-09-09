@@ -1,4 +1,5 @@
 import { getStore } from "@netlify/blobs";
+import { track, isBot } from "../lib/stats.mjs";
 
 const esc = (s) =>
   String(s || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -33,6 +34,7 @@ export default async (req) => {
   const url = new URL(req.url);
   const roomId = url.searchParams.get("room");
   const result = url.searchParams.get("r");
+  const bot = isBot(req.headers.get("user-agent"));
 
   let title = "중간에서 보자";
   let desc = "다들 출발지를 넣으면, 가장 공평한 중간 지하철역을 찾아줘요.";
@@ -96,11 +98,20 @@ export default async (req) => {
     `이동 중… 자동으로 안 열리면 <a href="${esc(dest)}">여기</a>를 눌러주세요.` +
     `</body></html>`;
 
+  if (roomId) {
+    // 봇 히트도 신호다 — 카톡이 카드를 만들었다는 건 초대가 실제로 전송됐다는 뜻.
+    await track({ [bot ? "invite_scraped" : "invite_viewed"]: 1 });
+  } else if (result) {
+    await track({ [bot ? "result_scraped" : "result_viewed"]: 1 });
+  }
+
   return new Response(html, {
     status: 200,
     headers: {
       "content-type": "text/html; charset=utf-8",
-      "cache-control": "public, max-age=300",
+      // 방 카드는 참여자 수가 실시간으로 바뀌고 열람도 세야 하므로 캐시하지 않는다.
+      // 결과 카드는 payload 로만 결정되는 고정 내용이라 캐시해도 된다.
+      "cache-control": roomId ? "no-store" : "public, max-age=300",
     },
   });
 };
