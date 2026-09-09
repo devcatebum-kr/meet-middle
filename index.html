@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>중간에서 보자 — 모임 중간지점 찾기</title>
-<meta name="description" content="모임 출발지를 넣으면 대중교통 시간 기준으로 가장 공평한 중간 지하철역을 찾아줘요. 방을 만들면 친구들이 각자 자기 출발지를 넣을 수 있어요.">
+<meta name="description" content="링크 하나 보내면 친구들이 각자 자기 출발지를 넣어요. 대중교통 시간을 재서, 가장 오래 걸리는 사람 기준으로 공평한 중간 지하철역을 찾아줍니다.">
 <meta property="og:title" content="중간에서 보자">
-<meta property="og:description" content="출발지만 넣으면 끝 — 대중교통 시간 기준으로 다 같이 가장 공평한 지하철역을 찾아드려요.">
+<meta property="og:description" content="링크 하나 보내면 각자 자기 출발지만 넣어요. 가장 오래 걸리는 사람 기준으로 공평한 역을 찾아드려요.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://idyllic-pasca-95ae55.netlify.app/">
 <!-- 빌드 스텝이 없어 절대경로 하드코딩. 이미지를 바꾸면 ?v= 를 올려야 카톡 캐시가 갱신된다. -->
@@ -22,31 +22,29 @@
 <div class="wrap">
   <header>
     <h1>중간에서 보자</h1>
-    <div class="sub">출발지만 넣으면, 대중교통 시간 기준으로 가장 공평한 지하철역을 찾아드려요.</div>
+    <div class="sub">링크 하나 보내면 각자 자기 출발지만 넣어요. 가장 오래 걸리는 사람 기준으로 공평한 역을 찾아드려요.</div>
   </header>
 
   <div id="keyWarn" class="warn" hidden>
     ⚠️ 카카오 지도 키가 설정되지 않았어요. <b>config.js</b>의 KAKAO_JS_KEY를 확인하세요.
   </div>
 
-  <!-- HOME : 솔로 입력 + 방 만들기 -->
+  <!-- HOME : 방 만들기(주 동선) + 혼자 다 입력하기(대안) -->
   <section id="homeView" hidden>
+    <div class="card room-cta">
+      <div class="cta-title">링크 하나 보내면, 각자 자기 출발지만 넣어요</div>
+      <div class="cta-desc">각자 넣은 출발지가 실시간으로 모여요. 대신 물어보고 다닐 필요 없어요.</div>
+      <button class="big" id="makeRoom">방 만들기</button>
+    </div>
+
+    <div class="or"><span>또는 내가 다 입력하기</span></div>
+
     <div class="card">
       <div class="label">출발지 (2명 이상)</div>
       <div id="soloPeople"></div>
       <div class="row-actions"><button class="ghost sm" id="soloAdd">+ 사람 추가</button></div>
     </div>
-    <button class="big" id="soloFind">중간지점 찾기</button>
-
-    <div class="or"><span>또는</span></div>
-
-    <div class="card room-cta">
-      <div class="cta-text">
-        <div class="cta-title">각자 자기 출발지 넣기</div>
-        <div class="cta-desc">링크 하나만 공유하면 끝. 친구들이 넣은 출발지가 실시간으로 모여요.</div>
-      </div>
-      <button class="ghost" id="makeRoom">방 만들기</button>
-    </div>
+    <button class="big ghost" id="soloFind">중간지점 찾기</button>
   </section>
 
   <!-- ROOM : 공유 링크 + 참여자 라이브 + 내 위치 추가 -->
@@ -85,6 +83,7 @@
     <div id="map"></div>
     <div class="card">
       <div class="label">추천 만남 장소 <span id="fairBadge" class="badge" hidden></span></div>
+      <div class="criterion">가장 오래 걸리는 사람의 이동시간이 짧은 순서예요.</div>
       <ul class="stations" id="stationList"></ul>
       <div class="copybar">
         <button id="copyText" class="ghost">📋 카톡용 텍스트</button>

@@ -56,7 +56,7 @@ export default async (req) => {
     desc =
       exists && n > 0
         ? `열어서 내 출발지만 추가하면 끝 · 다 모이면 대중교통 시간 기준으로 가장 공평한 역을 찾아드려요.`
-        : "출발지만 넣으면 끝 — 대중교통 시간 기준으로 다 같이 가장 공평한 지하철역을 찾아드려요.";
+        : "링크를 열고 내 출발지만 넣으면 끝 — 가장 오래 걸리는 사람 기준으로 공평한 역을 찾아드려요.";
   } else if (result) {
     const arr = decodeResult(result);
     if (arr) {
