@@ -1,5 +1,5 @@
 import { getStore } from "@netlify/blobs";
-import { kstDay } from "../lib/stats.mjs";
+import { kstDay } from "./_shared/stats.mjs";
 
 // 퍼널 조회. 사람이 볼 때만 호출되므로 사용자 트래픽에는 영향이 없다.
 //

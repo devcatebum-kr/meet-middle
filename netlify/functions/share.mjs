@@ -1,5 +1,5 @@
 import { getStore } from "@netlify/blobs";
-import { track, isBot } from "../lib/stats.mjs";
+import { track, isBot } from "./_shared/stats.mjs";
 
 const esc = (s) =>
   String(s || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
