@@ -69,18 +69,42 @@
 - 동적 og:image: 결과 카드 그림에 인원수·역 이름을 그려 넣기. 서버 PNG 렌더는 의존성(satori/resvg)이 붙어 **바닐라 유지 원칙과 트레이드오프** — 지금은 전 페이지 공용 1장.
 - 시딩: 오픈채팅/소모임/문토 등 커뮤니티 시딩용 카피(콘텐츠 마케팅 방식은 Jude가 선호 안 함 → 인프로덕트 초대 루프 우선).
 
-## 8-1. 배포 일시정지 (2026-09-09 기준)
+## 8-1. 배포 크레딧 (2026-09-09 실측)
 
-- Netlify 팀(`dev-cate-bum's team`)이 **operational credits** 로 전환되어 **production deploy 가 일시정지**됐다. 배포된 사이트는 계속 살아 있지만 새 배포가 안 올라간다.
-- 대시보드 상단 배너: *"Your published sites are still live, but production deploys and Agent Runners are paused."*
-- 라이브는 `c29f278`(홈 방 중심 재구성)에 멈춰 있고, 그 뒤 커밋 3개(`07ce510` 퍼널 계측 / `ac2cb0b` stats 잠금 / `7d776e7` 공용 모듈 이동)가 **대기 중**. 크레딧이 복구되면 한 번에 올라간다.
-- 해결: 팀 업그레이드 또는 다음 결제 주기까지 대기. 리셋 시점은 **Usage & billing** 에서 확인.
-- **진단 팁**: 배포 안 됨을 코드 문제로 오해하기 쉽다. `/api/stats` 가 `text/html`(Netlify 기본 404 페이지)로 오면 함수가 아직 배포 안 된 것이고, `text/plain`이면 함수가 떠서 토큰 없이 거부한 것이다.
-- 크레딧 복구 후 할 일: ① Netlify 환경변수에 `STATS_TOKEN` 추가 ② `Clear cache and deploy site` 로 재배포 ③ `curl "…/api/stats?t=<토큰>&format=text"` 로 퍼널 확인 ④ `/s?room=` 이 `no-store` 로 바뀌었는지 확인.
+Netlify 가 새 배포를 안 올려서 처음엔 빌드 실패로 오해했는데, 원인은 **크레딧 소진**이었다. 대시보드 실측:
+
+```
+Production deploys   300 credits   ← 20 deploys   (배포 1회 = 15크레딧)
+Web requests           0.2 credits   (757 requests)
+Compute                0.1 credits
+Bandwidth             <1 credit
+────────────────────────────────────
+Total                300.3 / 300      (Free plan, 청구주기 9/6~10/5)
+```
+
+- **비용의 99.9%가 배포다.** 앱 트래픽은 사실상 공짜(0.3크레딧). 5초 폴링이 비싸다는 건 오판이었다 — 지금 규모에선 비용 문제가 아니다(다만 확장 시 손볼 여지는 있음).
+- **Free plan 실효 상한 = 월 20회 프로덕션 배포.** 커밋마다 push 하면 하루에 소진된다. 2026-09-09 하루에만 12회 배포로 180크레딧을 썼다.
+- 소진되면 **프로덕션 배포만 정지**되고 배포된 사이트는 계속 살아 있다. 남은 30크레딧은 사이트 유지용(operational)이라 배포에 못 쓴다.
+- **Deploy preview 는 계속 가능** — 플랜에 "Unlimited deploy previews" 포함. PR 을 열면 미리보기 배포로 검증할 수 있다.
+- 다음 리셋: **2026-10-06**. 그때까지 라이브는 `c29f278` 에 고정.
+- 대기 중인 커밋: `07ce510`(퍼널 계측) / `ac2cb0b`(stats 잠금) / `7d776e7`(공용 모듈 이동). 리셋되면 한 번의 배포로 함께 나간다.
+- **진단 팁**: `/api/stats` 가 `text/html`(Netlify 기본 404)이면 함수 미배포, `text/plain`이면 배포됐고 토큰이 없어 거부된 것.
+- 리셋 후 할 일: ① 환경변수 `STATS_TOKEN` 추가 ② `Clear cache and deploy site` ③ `curl "…/api/stats?t=<토큰>&format=text"` ④ `/s?room=` 이 `no-store` 인지 확인.
+
+### 호스팅을 옮길지 (배포 횟수 관점)
+
+| | 배포 제한 | 비고 |
+|---|---|---|
+| Netlify Free (현재) | **월 20회** | Blobs 내장이 최대 강점 — 방 상태·ODsay 캐시·통계가 외부 서비스 없이 돈다 |
+| Cloudflare Pages Free | 월 500 빌드 | KV·D1 1급. 이 프로젝트에 가장 잘 맞는 대안 |
+| Vercel Hobby | 일 100 배포 | KV 는 외부 벤더(Upstash 등) 연결 필요 |
+
+옮길 때의 숨은 비용: **ODsay 60일 캐시가 통째로 날아가** 30콜/일 한도를 한동안 더 빨리 쓰게 된다. 기존 방도 전부 깨진다. 그래서 1순위는 이전이 아니라 **push 배칭**이고, 그래도 답답하면 Cloudflare 를 검토한다.
 
 ## 9. 개발 워크플로 (중요)
 - **이 repo 작업은 Claude Code(claude.ai/code 또는 CLI)에서 repo 바운드로** 한다 → `git commit`/`push` 네이티브로 몇 초.
-- 커밋은 작은 단위로. `main` push → Netlify 자동배포.
+- **커밋은 작게, push 는 묶어서.** `main` push 1회 = 프로덕션 배포 1회 = **15크레딧**. Free plan 은 월 300크레딧이므로 **월 20회 배포가 상한**이다(§8-1 실측). 커밋마다 push 하면 하루에 다 태운다.
+- 검증은 **PR Deploy preview** 로 한다 — 플랜에 "Unlimited deploy previews" 가 포함돼 프로덕션 크레딧을 쓰지 않는다. preview 에서 확인한 뒤 `main` 에 한 번에 올린다.
 - 바닐라 JS 유지(불필요한 프레임워크 도입 금지). ODsay 쿼터 절약 로직(캐시·top3) 건드리지 말 것.
 - 참고: Cowork 세션에서는 이 git 루프가 막혀 있어(세션이 컴퓨터 바운드, git 기능 off) 브라우저 우회를 해야 했음 — 그래서 Claude Code로 이관.
 
