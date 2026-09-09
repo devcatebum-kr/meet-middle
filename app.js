@@ -23,7 +23,7 @@
 
   // 초대 공유: 카카오 SDK 원탭 → 기기 공유시트 → 링크 복사 순으로 폴백
   function shareInvite(link) {
-    const text = "중간에서 보자 — 다 같이 공평한 중간 지하철역 찾기! 링크 열고 내 출발지를 넣어줘 🙌";
+    const text = "어디서 볼지 정하자! 링크 열고 출발지만 넣으면, 다 같이 제일 공평한 지하철역을 찾아줘 🙌";
     try {
       if (window.Kakao && Kakao.isInitialized && Kakao.isInitialized() && Kakao.Share) {
         Kakao.Share.sendDefault({ objectType: "text", text, link: { mobileWebUrl: link, webUrl: link } });
